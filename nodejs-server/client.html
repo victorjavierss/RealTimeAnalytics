@@ -1,0 +1,118 @@
+<html>
+<head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/datatable.js"></script>
+<script type="text/javascript">
+
+var registeredVideoSessions = {};
+
+var Events = {};
+Events.READY  = 'ready';
+Events.LOAD   = 'videoLoaded';
+Events.PLAY   = 'videoPlayed';
+Events.PAUSE  = 'videoPaused';
+Events.STOP   = 'videoStopped';
+Events.BUFFER = 'videoBuffer';
+Events.ERROR  = 'videoError';
+Events.UNLOAD    = 'videoUnloaded';
+Events.LOAD_TIME = 'videoLoadTime';
+Events.PLAYHEAD_UPDATE = 'videoPlayheadUpdate';
+
+var dtViews = new DataTable('video_identifier');
+
+function updateCurrentViewsHtml(){
+	
+	$('#video-list').empty();
+	
+	var totalCount = 0;
+	
+	for (var rank in dtViews.table){
+		var row = dtViews.table[rank];
+		totalCount += row[ dtViews.COUNT ];
+		var base_html = "<div id='" + row.video_identifier + "'>"
+						+ "<h4>"+row.video_name+"</h4>"
+						+ "<div class='vid_thumbnail'><img src='" + row.video_thumbnail + "' /></div>"
+						+ "<div class='current'>Current: <span>"+row[ dtViews.COUNT ]+"</span></div>"
+						+ "</div>";
+						
+		$('#video-list').append(base_html);
+	}
+	
+	$('h3 span').html( totalCount );
+}
+
+function increaseCurrentViewers (data){
+	var current = $('h3 span').html() * 1;
+	registeredVideoSessions[ data.g ] = true;
+	$('h3 span').html( ++current );
+	dtViews.insert( data.m );
+}
+
+function decreaseCurrentViewers(data){
+	var currentVideoViewers = dtViews.getCount( data.m );
+	if( currentVideoViewers > 0){
+		if(currentVideoViewers > 0){
+			dtViews.remove( data.m );
+		}
+	}
+}
+
+function playHeadUpdate(data){
+	if ( typeof registeredVideoSessions[ data.g ] == 'undefined'){
+		registeredVideoSessions[ data.g ] = true;
+		increaseViewers(data);
+	}
+}
+
+io = io.connect()
+io.emit('ready', '5593f8214fc7af3b82da8dd69d62a491210b28e0-customerDashboard');
+
+//Socket.IO Events
+io.on(Events.LOAD, function(){});
+io.on(Events.PLAY, function(data){
+	increaseCurrentViewers(data); 
+	updateCurrentViewsHtml();
+} );
+
+io.on(Events.PLAYHEAD_UPDATE, function(data){
+	playHeadUpdate(data);
+	updateCurrentViewsHtml();
+});
+
+io.on(Events.UNLOAD, function(data){decreaseCurrentViewers(data); updateCurrentViewsHtml();});
+io.on(Events.STOP  , function(data){decreaseCurrentViewers(data); updateCurrentViewsHtml();});
+io.on(Events.PAUSE , function(data){decreaseCurrentViewers(data); updateCurrentViewsHtml();});
+</script>
+
+<script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Date', 'Load', 'Current Viewers'],
+          ['2004',  1000,      400],
+          ['2005',  1170,      460],
+          ['2006',  660,       1120],
+          ['2007',  1030,      540]
+        ]);
+
+        var options = { title: 'Viewers' };
+
+        chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+<style>
+.vid_thumbnail img{
+	width: 150px;
+}
+</style>
+</head>
+<body>
+	<h1>Real Time Current Vids</h1>
+	<h3> Current: <span>0</span></h3>
+	<div id='video-list'></div>
+</body>
+</html>
