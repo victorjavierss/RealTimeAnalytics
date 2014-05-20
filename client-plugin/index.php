@@ -60,12 +60,12 @@
                     $pluginJS   = JS_PATH . $customerPackage.'-plugin.js';
                     $jsCode = file_get_contents($basePlugin) .  file_get_contents($socketIO) . file_get_contents($pluginJS) . "var rap = new RealTimeAnalytics('{$apiKey}')";
                 }else{
-                    header('HTTP/1.1 401 Unauthorized');
-                    $jsCode = json_encode(array('error'=>"ApiKey not assigned"));
+                    header('HTTP/1.1 400 Bad Request');
+                    $jsCode = json_encode(array('error'=>"Invalid API Key"));
                 }
             }else{
-                header('HTTP/1.1 401 Unauthorized');
-                $jsCode = json_encode(array('error'=>"ApiKey not assigned"));
+                header('HTTP/1.1 400 Bad Request');
+                $jsCode = json_encode(array('error'=>"Invalid API Key"));
             }
 
             $jsCode = \JShrink\Minifier::minify($jsCode);
