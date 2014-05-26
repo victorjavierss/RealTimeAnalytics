@@ -7,7 +7,7 @@
 
 RealTimeAnalytics = function( customer ){
     this.customerApiKey = customer;
-    this.io = io.connect('http://ec2-54-187-235-66.us-west-2.compute.amazonaws.com:7076');
+    this.io = io.connect('http://localhost:7076');
     this.io.emit('ready',  this.customerApiKey);
     this.guid = guid();
     var rta  = this;
