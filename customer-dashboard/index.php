@@ -189,7 +189,7 @@
 
                 </div>
                 <!-- /.col-lg-4 -->
-                <div class="col-lg-8 pull-right">
+                <div class="col-lg-8">
                     <div class="panel panel-default panel-top-ten">
                         <div class="panel-heading">
                             <i class="fa fa-bar-chart-o fa-bullhorn"></i> Current Playing Content
