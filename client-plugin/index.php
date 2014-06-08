@@ -8,6 +8,8 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 require_once __DIR__.'/lib/JShrink/Minifier.php';
+require_once __DIR__.'/lib/SilexMemcache/MemcacheExtension.php';
+
 
 use Symfony\Component\HttpFoundation\Response;
 use JShrink\Minifier;
