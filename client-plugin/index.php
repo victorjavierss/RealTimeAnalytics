@@ -8,7 +8,7 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 require_once __DIR__.'/lib/JShrink/Minifier.php';
-require_once __DIR__.'/lib/SilexMemcache/MemcacheExtension.php';
+//require_once __DIR__.'/lib/SilexMemcache/MemcacheExtension.php';
 
 
 use Symfony\Component\HttpFoundation\Response;
@@ -68,7 +68,7 @@ $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
             $expiresDate = new DateTime();
             $expiresDate->modify('+3600 seconds');
 
-            $response = new Response( $app['memcache']->get($version.$apikey) );
+            $response = new Response( $compiledJS );
             $response->setPublic();
             $response->setSharedMaxAge(3600);
 
