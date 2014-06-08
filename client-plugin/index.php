@@ -14,6 +14,8 @@ require_once __DIR__.'/lib/SilexMemcache/MemcacheExtension.php';
 use Symfony\Component\HttpFoundation\Response;
 use JShrink\Minifier;
 
+date_default_timezone_set('America/Mexico_City');
+
 $app = new Silex\Application();
 
 define( 'APP_HOME', __DIR__  );
