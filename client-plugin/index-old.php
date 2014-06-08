@@ -27,16 +27,25 @@
     );
 
 
-    $cache = Zend_Cache::factory('Core', 'Apc', $frontendOptions, $backendOptions);
-    $cache->clean();
+    function __autoload($class_name){
+            $class = str_replace('_',DIRECTORY_SEPARATOR,$class_name);
+            $file = $class . '.php';
+            if ($fh = @fopen($file, 'r', true)) {
+                    include_once $file;
+                }
+         @fclose($fh);
+     }
+
+    $cache = Zend_Cache::factory('Core', 'File', $frontendOptions, $backendOptions);
+
     if ( ! ($jsCode = $cache->load( $apiKey ) ) ){
         require_once 'lib/JShrink/Minifier.php';
         $jsCode = '';
         $dbAdapter = Zend_Db::factory('Pdo_Mysql', array(
-            'host'             => '127.0.0.1',
-            'username'         => 'root',
-            'password'         => 'root',
-            'dbname'           => 'api'
+            'host'             => 'realtimeanalytics.c1jgsj59qnnj.us-west-2.rds.amazonaws.com',
+            'username'         => 'realanal',
+            'password'         => 'r#!s123RTE!',
+            'dbname'           => 'nodeanal'
         ));
         Zend_Db_Table::setDefaultAdapter($dbAdapter);
         $customerTable = new Zend_Db_Table('customer');
@@ -49,8 +58,6 @@
                 $basePlugin = JS_PATH . 'base-api.js';
                 $pluginJS   = JS_PATH . $customerPackage.'-plugin.js';
                 $jsCode = file_get_contents($basePlugin) .  file_get_contents($socketIO) . file_get_contents($pluginJS) . "var rap = new RealTimeAnalytics('{$apiKey}')";
-
-
             }else{
                 header('HTTP/1.1 401 Unauthorized');
                 $jsCode = json_encode(array('error'=>"ApiKey not assigned"));

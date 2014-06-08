@@ -7,10 +7,17 @@
  */
 
 require_once __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/lib/JShrink/Minifier.php';
 
 use Symfony\Component\HttpFoundation\Response;
+use JShrink\Minifier;
 
 $app = new Silex\Application();
+
+define( 'APP_HOME', __DIR__  );
+define( 'JS_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR  );
+
+$app['debug'] = true;
 
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     'db.options' => array(
@@ -22,31 +29,59 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     ),
 ));
 
+$app->register(new SilexMemcache\MemcacheExtension(), array(
+    'memcache.library'    => 'memcached',
+    'memcache.server' => array(
+        array('127.0.0.1', 11211)
+    )
+));
+
 $app->register(new Silex\Provider\HttpCacheServiceProvider(), array(
     'http_cache.cache_dir' => __DIR__.'/cache/',
-));
+) );
 
 $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
 
     $sql = "SELECT * FROM customer WHERE apikey = ?";
-    $customer = $app['db']->fetchAssoc($sql, array( $apikey ));
+    $customer = $app['db']->fetchObject($sql, array( $apikey ));
 
-    var_dump( $customer );
+    if( $customer ){
 
+        $customerPackage = $customer->modules;
+        if ( $customerPackage ){
+            $socketIO   = JS_PATH . 'socket.io.js';
+            $basePlugin = JS_PATH . 'base-api.js';
+            $pluginJS   = JS_PATH . $customerPackage.'-plugin.js';
 
-    $expiresDate = new DateTime();
-    $expiresDate->modify('+3600 seconds');
+            if( $app['memcache']->get($version.$apikey) ){
+                $compiledJS = file_get_contents($basePlugin) .  file_get_contents($socketIO)  . file_get_contents($pluginJS) . "var rap = new RealTimeAnalytics('{$apikey}')";
+                $compiledJS = \JShrink\Minifier::minify($compiledJS);
+                $app['memcache']->set($version.$apikey, $compiledJS);
+            }
 
-    $response = new Response("{$version}/{$apikey}");
-    $response->setPublic();
-    $response->setSharedMaxAge(3600);
+            $expiresDate = new DateTime();
+            $expiresDate->modify('+3600 seconds');
 
-    $response->setExpires( $expiresDate );
-    $response->headers->addCacheControlDirective('must-revalidate', true);
+            $response = new Response( $app['memcache']->get($version.$apikey) );
+            $response->setPublic();
+            $response->setSharedMaxAge(3600);
 
-    $response->setEtag($apikey);
+            $response->setExpires( $expiresDate );
+            $response->headers->addCacheControlDirective('must-revalidate', true);
+            $response->headers->set('Content-Type' , 'text/javascript');
 
-    return $response;
+            $response->setEtag($apikey);
+
+            return $response;
+
+        }else{
+            $app->abort(404);
+        }
+    }else{
+        $app->abort(404);
+    }
+
+    $app->abort(404);
 });
 
 $app->run();

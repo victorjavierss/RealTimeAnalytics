@@ -383,6 +383,19 @@ class Connection implements DriverConnection
 
     /**
      * Prepares and executes an SQL query and returns the first row of the result
+     * as an object.
+     *
+     * @param string $statement The SQL query.
+     * @param array $params The query parameters.
+     * @return object
+     */
+    public function fetchObject($statement, array $params = array())
+    {
+        return $this->executeQuery($statement, $params)->fetch(PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Prepares and executes an SQL query and returns the first row of the result
      * as a numerically indexed array.
      *
      * @param string $statement         sql query to be executed
