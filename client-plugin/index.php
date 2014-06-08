@@ -70,7 +70,7 @@ $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
             $expiresDate = new DateTime();
             $expiresDate->modify('+3600 seconds');
 
-            $response = new Response( $compiledJS );
+            $response = new Response( $app['memcache']->get($version.$apikey) );
             $response->setPublic();
             $response->setSharedMaxAge(3600);
 
