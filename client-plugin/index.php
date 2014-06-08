@@ -42,6 +42,10 @@ $app->register(new Silex\Provider\HttpCacheServiceProvider(), array(
     'http_cache.cache_dir' => __DIR__.'/cache/',
 ) );
 
+$app->get('/', function() use ($app){
+    $app->abort(404);
+});
+
 $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
 
     $sql = "SELECT * FROM customer WHERE apikey = ?";
