@@ -61,7 +61,7 @@ $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
             $basePlugin = JS_PATH . 'base-api.js';
             $pluginJS   = JS_PATH . $customerPackage.'-plugin.js';
 
-            if( $app['memcache']->get($version.$apikey) ){
+            if( ! $app['memcache']->get($version.$apikey) ){
                 $compiledJS = file_get_contents($basePlugin) .  file_get_contents($socketIO)  . file_get_contents($pluginJS) . "var rap = new RealTimeAnalytics('{$apikey}')";
                 $compiledJS = \JShrink\Minifier::minify($compiledJS);
                 $app['memcache']->set($version.$apikey, $compiledJS);
