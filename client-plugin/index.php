@@ -23,7 +23,7 @@ define( 'JS_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARAT
 
 define( 'EXPIRATION', 3600 );
 
-$app['debug'] = true;
+// $app['debug'] = true;
 
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     'db.options' => array(
