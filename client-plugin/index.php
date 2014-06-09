@@ -21,6 +21,8 @@ $app = new Silex\Application();
 define( 'APP_HOME', __DIR__  );
 define( 'JS_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR  );
 
+define( 'EXPIRATION', 3600 );
+
 $app['debug'] = true;
 
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
@@ -64,15 +66,15 @@ $app->get('/{version}/{apikey}', function($version, $apikey) use ($app)  {
             if( ! $app['memcache']->get($version.$apikey) ){
                 $compiledJS = file_get_contents($basePlugin) .  file_get_contents($socketIO)  . file_get_contents($pluginJS) . "var rap = new RealTimeAnalytics('{$apikey}')";
                 $compiledJS = \JShrink\Minifier::minify($compiledJS);
-                $app['memcache']->set($version.$apikey, $compiledJS);
+                $app['memcache']->set($version.$apikey, $compiledJS, EXPIRATION);
             }
 
             $expiresDate = new DateTime();
-            $expiresDate->modify('+3600 seconds');
+            $expiresDate->modify('+'.EXPIRATION.' seconds');
 
             $response = new Response( $app['memcache']->get($version.$apikey) );
             $response->setPublic();
-            $response->setSharedMaxAge(3600);
+            $response->setSharedMaxAge(EXPIRATION);
 
             $response->setExpires( $expiresDate );
             $response->headers->addCacheControlDirective('must-revalidate', true);
